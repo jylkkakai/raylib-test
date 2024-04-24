@@ -26,11 +26,61 @@
 //----------------------------------------------------------------------------------
 int screenWidth = 800;
 int screenHeight = 450;
+class Ball {
+public:
+  Ball();
+  ~Ball();
 
+  Vector2 getPosition();
+  Vector2 getSpeed();
+  float getRadius();
+  Color getColor();
+  void updatePosition();
+  void switchGravityOnOff();
+
+private:
+  Vector2 position_;
+  Vector2 speed_;
+  float radius_;
+  float g_;
+  Color color_;
+};
+
+Ball::Ball() {
+  position_ = {float(screenWidth) / 2, float(screenHeight) / 2};
+  speed_ = {2, 2};
+  radius_ = 20;
+  g_ = 9.81 / 60;
+  color_ = RED;
+}
+Vector2 Ball::getPosition() { return position_; }
+Vector2 Ball::getSpeed() { return speed_; }
+float Ball::getRadius() { return radius_; }
+Color Ball::getColor() { return color_; }
+void Ball::updatePosition() {
+  speed_.y = speed_.y + g_;
+  position_.x += speed_.x;
+  position_.y += speed_.y;
+  speed_.y = speed_.y + g_;
+  if (position_.y + radius_ >= screenHeight && speed_.y > 0) {
+    speed_.y = -(speed_.y * 0.99);
+  }
+  if (position_.x + radius_ >= screenWidth || position_.x - radius_ <= 0) {
+    speed_.x = -speed_.x * 0.99;
+  }
+}
+void Ball::switchGravityOnOff() {
+  if (g_ > 0)
+    g_ = 0;
+  else
+    g_ = 9.81;
+}
+
+Ball::~Ball() {}
 //----------------------------------------------------------------------------------
 // Module Functions Declaration
 //----------------------------------------------------------------------------------
-void UpdateDrawFrame(void); // Update and Draw one frame
+void UpdateDrawFrame(Ball ball); // Update and Draw one frame
 
 //----------------------------------------------------------------------------------
 // Main Entry Point
@@ -38,7 +88,8 @@ void UpdateDrawFrame(void); // Update and Draw one frame
 int main() {
   // Initialization
   //--------------------------------------------------------------------------------------
-  InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+  InitWindow(screenWidth, screenHeight, "Ball");
+  Ball ball;
 
 #if defined(PLATFORM_WEB)
   emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
@@ -49,7 +100,11 @@ int main() {
   // Main game loop
   while (!WindowShouldClose()) // Detect window close button or ESC key
   {
-    UpdateDrawFrame();
+
+    if (IsKeyDown(KEY_G))
+      ball.switchGravityOnOff();
+    ball.updatePosition();
+    UpdateDrawFrame(ball);
   }
 #endif
 
@@ -64,7 +119,7 @@ int main() {
 //----------------------------------------------------------------------------------
 // Module Functions Definition
 //----------------------------------------------------------------------------------
-void UpdateDrawFrame(void) {
+void UpdateDrawFrame(Ball ball) {
   // Update
   //----------------------------------------------------------------------------------
   // TODO: Update your variables here
@@ -76,7 +131,9 @@ void UpdateDrawFrame(void) {
 
   ClearBackground(RAYWHITE);
 
-  DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+  DrawText("Congrats! You created your first window!", 190, 300, 20, LIGHTGRAY);
+  DrawCircle(ball.getPosition().x, ball.getPosition().y, ball.getRadius(),
+             ball.getColor());
 
   EndDrawing();
   //----------------------------------------------------------------------------------
